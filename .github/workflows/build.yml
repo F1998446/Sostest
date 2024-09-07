@@ -55,3 +55,8 @@ jobs:
           buildozer android debug
         working-directory: .
 
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: APK
+          path: bin/*.apk
