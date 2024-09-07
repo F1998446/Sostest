@@ -20,38 +20,29 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-
-          sudo apt install -y python3-pip build-essential git openjdk-11-jdk unzip
+          sudo apt install -y python3-pip build-essential git openjdk-11-jdk unzip libffi-dev libssl-dev libsqlite3-dev
           pip install --upgrade pip setuptools
           pip install buildozer cython kivy kivymd
 
       - name: Install Android SDK
         run: |
-          sudo mkdir -p /opt/android-sdk
+          sudo mkdir -p /opt/android-sdk/cmdline-tools/latest
           sudo wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O sdk-tools.zip
-          sudo unzip sdk-tools.zip -d /opt/android-sdk/cmdline-tools
-          sudo mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest
-          echo "export ANDROID_SDK_ROOT=/opt/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$PATH:/opt/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
-          echo "export PATH=$PATH:/opt/android-sdk/platform-tools" >> $GITHUB_ENV
-          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-          sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-30" "build-tools;30.0.3" "ndk;21.4.7075529"
+          sudo unzip sdk-tools.zip -d /opt/android-sdk/cmdline-tools/latest
+          sudo mv /opt/android-sdk/cmdline-tools/latest/cmdline-tools /opt/android-sdk/cmdline-tools/latest
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:/opt/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
+          echo "PATH=$PATH:/opt/android-sdk/platform-tools" >> $GITHUB_ENV
+          yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
+          /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-30" "build-tools;30.0.3" "ndk;21.4.7075529"
 
       - name: Build APK with Buildozer
         run: |
-          buildozer init
           buildozer android debug
         working-directory: .
-
-
-          sudo apt install -y python3-pip build-essential git
-          pip install --upgrade pip setuptools
-          pip install buildozer cython kivy
-
-      - name: Build APK with Buildozer
-        run: |
-          sudo apt install -y libffi-dev libssl-dev libsqlite3-dev
-          buildozer init
-          buildozer android debug
-        working-directory: .
-
+        
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: APK
+          path: bin/*.apk
